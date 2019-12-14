@@ -1,12 +1,19 @@
 class BooksController < ApplicationController
   def index
-    @books = Book.all
+    @books = Book.page(params[:page]).per(5)
+    @book = Book.new
     @categories = Category.all
   end
 
   def create
-    Book.create title: params[:title], category_id: params[:category_id]
-    redirect_to "/books"
+    @book = Book.new title: params[:title]
+    if @book.save
+      flash[:success] = "Le livre a bien était créer"
+      redirect_to "/books"
+    else
+      @books = Book.page(params[:page]).per(5)
+      render "index"
+    end
   end
 
   def show
@@ -15,11 +22,15 @@ class BooksController < ApplicationController
 
   def update
 
-    book = Book.find(params[:id])
+    @book = Book.find(params[:id])
 
-    if book.update title: params[:title]
+    if @book.update title: params[:title]
+      flash[:success] = "Le livre a était mis à jour"
       redirect_to "/books/#{params[:id]}"
+    else
+      render 'show'
     end
+
   end
 
   def destroy
